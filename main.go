@@ -64,11 +64,11 @@ func main() {
 		port = *portOpt
 	}
 
-	// Route 1: View Ledger History
+	// Route 1: View Ledger History & Render Health Check
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(nodeBlockchain.Chain)
+		w.WriteHeader(http.StatusOK) // Explicitly send 200 OK status
+		fmt.Fprintf(w, "Macrocoin Network Online")
 	})
 
 	// Route 2: Mine Blocks & Distribute Block Rewards

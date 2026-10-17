@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MacroCoin Node Controller</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+            --card-bg: white;
+            --header-color: #1a1a1a;
+            --border-color: #e1e4e8;
+            --input-border: #ccc;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --header-color: #ffffff;
+            --border-color: #333;
+            --input-border: #444;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 0 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 { color: var(--header-color); margin: 0; }
+        
+        .theme-toggle {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        button.action-btn { 
+            background: #0070f3; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-right: 5px;
+        }
+        
+        button.action-btn:hover { background: #0051a8; }
+        
+        input { 
+            padding: 10px; 
+            width: 200px; 
+            margin-right: 10px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 5px; 
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>🪙 MacroCoin Network Dashboard</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Dark Mode</button>
+    </div>
+
+    <div class="card">
+        <h2>🛠️ Node Core Actions</h2>
+        <button class="action-btn" onclick="triggerAction('http://localhost:8080/mine')">⛏️ Mine Next Block</button>
+        <button class="action-btn" onclick="triggerAction('http://localhost:8080/')">🔍 View Full Blockchain Ledger</button>
+    </div>
+
+    <div class="card">
+        <h2>💸 Process New Transaction</h2>
+        <input type="text" id="txSender" placeholder="Sender Name/Address">
+        <input type="text" id="txRecipient" placeholder="Recipient Name/Address">
+        <input type="number" id="txAmount" placeholder="Amount (e.g. 20)">
+        <button class="action-btn" onclick="sendTransaction()">🚀 Send Transaction</button>
+    </div>
+
+    <div class="card">
+        <h2>📊 Check Wallet Balance</h2>
+        <input type="text" id="balanceAddress" placeholder="Enter Wallet Address">
+        <button class="action-btn" onclick="checkBalance()">🔍 Run Ledger Audit</button>
+    </div>
+
+    <div class="card">
+        <h2>🖥️ Network Node Output Console</h2>
+        <pre id="consoleLog">Logs will display here...</pre>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            document.getElementById('themeBtn').textContent = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        function triggerAction(url) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('consoleLog').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(err => {
+                    document.getElementById('consoleLog').textContent = "Connection error: " + err.message;
+                });
+        }
+
+        function sendTransaction() {
+            const s = document.getElementById('txSender').value;
+            const r = document.getElementById('txRecipient').value;
+            const a = document.getElementById('txAmount').value;
+            const url = `http://localhost:8080/transactions/new?sender=${s}&recipient=${r}&amount=${a}`;
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('consoleLog').textContent = data.message || data.error;
+                })
+                .catch(err => {
+                    document.getElementById('consoleLog').textContent = "Error: " + err.message;
+                });
+        }
+
+        // Initialize with default balance checker layout
+        function checkBalance() {
+            const addr = document.getElementById('balanceAddress').value;
+            const url = `http://localhost:8080/balance?address=${addr}`;
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('consoleLog').textContent = `Address: ${data.address}\nCalculated Net Balance: ${data.balance} MacroCoins`;
+                })
+                .catch(err => {
+                    document.getElementById('consoleLog').textContent = "Error: " + err.message;
+                });
+        }
+    </script>
+</body>
+</html>
